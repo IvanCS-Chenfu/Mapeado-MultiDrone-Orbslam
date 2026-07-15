@@ -1,0 +1,22 @@
+# Configuración local de Codex para este workspace ROS 2.
+# Este archivo debe estar en: src/.codex/config.toml
+
+model = "gpt-5.5"
+model_reasoning_effort = "high"
+
+# Mantener control humano cuando haya acciones fuera del workspace.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+# No se añaden carpetas extra escribibles fuera del workspace abierto.
+writable_roots = []
+network_access = false
+exclude_tmpdir_env_var = true
+exclude_slash_tmp = true
+
+[agents]
+# Suficiente para usar agentes de análisis sin crear demasiada complejidad.
+max_threads = 3
+max_depth = 1
+job_max_runtime_seconds = 1800

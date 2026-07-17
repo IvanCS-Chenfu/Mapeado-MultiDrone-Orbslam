@@ -32,7 +32,7 @@ Subfase 1I: PoseGraphBuilder temporal conseguido de nuevo el 2026-07-10 con pres
 Subfase 1J: OptimizationManager dry-run y `partial_candidate` conseguidos de nuevo el 2026-07-10 con `[F1J-OPT-ANCHOR-PRESERVATION]`
 Subfase 1K: apply seguro en `GlobalPoseStore` conseguido de nuevo el 2026-07-11 con precheck de preservacion de anclajes
 Subfase 1L: PARCIAL; diagnostico post-apply, pendiente de revalidacion futura
-Subfase 1M: actual/sin hacer; `CovisibilityDatabase` confirmada
+Subfase 1M: actual/a probar en simulación; `CovisibilityDatabase` implementada
 Subfase actual: 1M
 ```
 
@@ -128,7 +128,7 @@ Si una clase nueva aún no existe, la subfase correspondiente define cómo crear
 | 1J | `subfase_1J.md` | Realizada de nuevo: dry-run, dump/replay offline y HTML diagnóstico del grafo. |
 | 1K | `subfase_1K.md` | Realizada/parcial: apply en `GlobalPoseStore`, propagación, publicación coherente y herencia de KFs futuros. |
 | 1L | `subfase_1L.md` | Parcial: diagnóstico post-apply con logs/RViz2/GT debug; no es dueña del solver ni del apply. |
-| 1M | `subfase_1M.md` | Actual/sin hacer: `CovisibilityDatabase` confirmada para ORB-SLAM3 y loops geométricos. |
+| 1M | `subfase_1M.md` | Actual/a probar en simulación: `CovisibilityDatabase` implementada para ORB-SLAM3 y loops geométricos. |
 | 1N | `subfase_1N.md` | Sin hacer: `LoopDetector` BoW, consultando covisibilidad confirmada para saltar pares ya conocidos. |
 | 1O | `subfase_1O.md` | `SubcloudLoopVerifier`. |
 | 1P | `subfase_1P.md` | `LoopDecisionManager`, fusión y scoring multi-dron. |

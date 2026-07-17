@@ -9,8 +9,8 @@ Si hace falta evidencia histórica, abrir el historial por subfase.
 Fase activa: Fase 1 — Mapa sparse global multi-dron
 Subfase actual: 1M
 Conclusión 1L: PARCIAL
-Estado 1M: `CovisibilityDatabase`, sin hacer
-Siguiente bloque funcional: 1N+, bloqueado hasta completar 1M
+Estado 1M: `CovisibilityDatabase`, a probar en simulación
+Siguiente bloque funcional: 1N+, bloqueado hasta validar 1M
 ```
 
 ## Objetivo global
@@ -35,13 +35,18 @@ fusionable y útil para poses globales sin ground truth.
 
 ## Estado real de `1M`
 
-`1M` crea `CovisibilityDatabase`, una base de relaciones confirmadas entre
+`1M` implementa `CovisibilityDatabase`, una base de relaciones confirmadas entre
 KeyFrames. Importará covisibilidad ORB-SLAM3 intra-dron desde la base principal
 y permitirá añadir loops confirmados por geometría, incluidos pares entre
 drones distintos. No guarda candidatos BoW ni estados pendientes: si una arista
 está dentro, se considera confirmada. Debe guardar soporte, fuente y pose
 relativa medida/current para que las optimizaciones añadan restricciones sin
 separar KFs covisibles.
+
+La implementación queda pendiente de prueba en simulación/replay: debe
+confirmarse que el wrapper rellena las conexiones nativas y que los logs
+`[F1M-COVIS-*]` muestran importación y consultas coherentes antes de desbloquear
+`1N+`.
 
 ## Estado real de `1L`
 

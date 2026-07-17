@@ -1,6 +1,6 @@
 # 00_summary — orbslam3_multi
 
-Resumen: Backend algorítmico principal de Fase 1. Contiene `RawMapDatabase`, `GlobalPoseStore`, `FiducialAnchorManager`, `GlobalMapBuilder` y `OptimizationManager`.
+Resumen: Backend algorítmico principal de Fase 1. Contiene `RawMapDatabase`, `GlobalPoseStore`, `FiducialAnchorManager`, `CovisibilityDatabase`, `GlobalMapBuilder` y `OptimizationManager`.
 
 Reclasificación vigente H-L: `PoseGraphBuilder`/`PoseGraphProblem` son `1I`,
 `OptimizationManager` solver/dry-run/replay/HTML es `1J`, apply/propagación y
@@ -14,8 +14,8 @@ Interfaces clave:
 Scripts / Ejecutables relevantes:
 - `test_opt_graph_offline` (diagnóstico dry-run/HTML).
 
-APIs clave: `RawMapDatabase`, `GlobalPoseStore`, `FiducialAnchorManager`, `OptimizationManager`, `GlobalMapBuilder`.
+APIs clave: `RawMapDatabase`, `GlobalPoseStore`, `FiducialAnchorManager`, `CovisibilityDatabase`, `OptimizationManager`, `GlobalMapBuilder`.
 
 Config / Launch: no tiene launch; es librería C++ consumida por `orbslam3_server`.
 
-Detalles y diseño en los MDs del paquete (raw_map_database.md, optimization_manager.md, ...).
+Detalles y diseño en los MDs del paquete (raw_map_database.md, covisibility_database.md, optimization_manager.md, ...).

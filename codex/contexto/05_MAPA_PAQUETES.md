@@ -22,7 +22,7 @@ python3 codex/herramientas/find_context.py <query>
 |---|---|---|
 | `orbslam3_msgs` | estable | Contrato ROS 2 entre wrapper, servidor y corrector. No añadir score global ni rediseñar salvo fase explícita. |
 | `orbslam3_ros2` | estable | Wrapper estéreo ORB-SLAM3. Publica pose local, `OrbMap` delta y `GetOrbMap`. |
-| `orbslam3_multi` | activo/migración | Backend algorítmico objetivo de Fase 1. La ruta activa contiene `RawMapDatabase`; los módulos antiguos están solo en `orbslam3_multi/legacy/`. |
+| `orbslam3_multi` | activo/migración | Backend algorítmico objetivo de Fase 1. La ruta activa contiene `RawMapDatabase` y `CovisibilityDatabase`; los módulos antiguos están solo en `orbslam3_multi/legacy/`. |
 | `orbslam3_server` | activo/migración | Adaptador ROS 2 objetivo. El servidor legacy monolítico se conserva como referencia durante 1A-1B. |
 | `dron_individual` | activo | Control por dron y acción `AccionTrayectoria`. |
 | `simulacion_dron` | activo | Gazebo, launch multi-dron, mundo, plugins GT y nodo/flujo de escenarios. |

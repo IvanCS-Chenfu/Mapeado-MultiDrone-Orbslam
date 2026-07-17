@@ -18,9 +18,9 @@ codex/contexto/CONTEXTO_MINIMO_ACTUAL.md
 ## Estado operativo
 
 - Fase activa: Fase 1 — mapa sparse global multi-dron.
-- Subfase activa: `1M`, `CovisibilityDatabase` pendiente de implementar.
+- Subfase activa: `1M`, `CovisibilityDatabase` a probar en simulación.
 - `1L` queda `PARCIAL` y se volverá a comprobar en el futuro.
-- No iniciar `1N+` hasta completar `1M`.
+- No iniciar `1N+` hasta validar `1M`.
 - Objetivo global del proyecto: nube densa global sin usar ground truth para mapa
   final ni pose final.
 
@@ -43,6 +43,7 @@ orbslam3_ros2
       RawMapDatabase
       GlobalPoseStore
       FiducialAnchorManager
+      CovisibilityDatabase
       PoseGraphBuilder
       OptimizationManager
       GlobalMapBuilder

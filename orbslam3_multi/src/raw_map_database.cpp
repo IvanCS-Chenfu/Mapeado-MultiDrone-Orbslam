@@ -250,6 +250,8 @@ RawInsertResult RawMapDatabase::InsertMap(uint64_t arrival_id,
         if (previous == submap.keyframes.end())
         {
             ++result.new_keyframes;
+            result.new_keyframe_ids.push_back(
+                RawKeyFrameId{map.drone_id, map.map_epoch, keyframe.id});
         }
         else
         {

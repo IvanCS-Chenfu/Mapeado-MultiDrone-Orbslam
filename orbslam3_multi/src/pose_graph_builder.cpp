@@ -218,7 +218,8 @@ const PoseGraphBuilderConfig& PoseGraphBuilder::GetConfig() const
 PoseGraphBuildResult PoseGraphBuilder::BuildForFiducialTask(
     const FiducialOptimizationTask& task,
     const RawMapDatabase& raw_db,
-    const GlobalPoseStore& pose_store) const
+    const GlobalPoseStore& pose_store,
+    const CovisibilityDatabase* covisibility_db) const
 {
     // F1I: la ventana se calcula solo en el submapa de la tarea. No se expande
     // a loops ni a otros drones porque esas evidencias aun no existen en 1I.
@@ -896,6 +897,32 @@ PoseGraphBuildResult PoseGraphBuilder::BuildForFiducialTask(
             edge.weight = base_weight * edge.support_rigidity_multiplier;
             edge.source = "F1I_TEMPORAL_WINDOW";
             result.problem.edges.push_back(edge);
+        }
+
+        // F1M: las relaciones confirmadas se convierten en restricciones extra
+        // solo cuando ambos extremos ya pertenecen a la ventana seleccionada.
+        // No crean vertices y no sustituyen las aristas temporales de 1I.
+        if (covisibility_db)
+        {
+            const auto covisibility_edges = covisibility_db->GetEdgesForWindow(
+                selected_ordered,
+                config_.covisibility_min_weight);
+            for (const auto& covisibility_edge : covisibility_edges)
+            {
+                PoseGraphEdge edge;
+                edge.edge_id = edge_id++;
+                edge.from_keyframe_id = covisibility_edge.kf_a;
+                edge.to_keyframe_id = covisibility_edge.kf_b;
+                edge.edge_type = PoseGraphEdgeType::SoftConsistency;
+                edge.relative_T_from_to = covisibility_edge.relative_pose_current;
+                edge.weight = covisibility_edge.information_weight *
+                    config_.covisibility_edge_weight_scale;
+                edge.support_keyframe_count =
+                    covisibility_edge.shared_mappoints_or_inliers;
+                edge.source = std::string("F1M_") +
+                    ToString(covisibility_edge.source);
+                result.problem.edges.push_back(edge);
+            }
         }
     }
 

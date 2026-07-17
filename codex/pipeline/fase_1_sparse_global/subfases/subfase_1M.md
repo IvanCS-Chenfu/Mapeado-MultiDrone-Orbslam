@@ -3,7 +3,7 @@
 ## Estado
 
 ```text
-sin hacer
+a probar en simulación
 ```
 
 ## Objetivo técnico
@@ -161,3 +161,13 @@ No insertar nada por BoW solo.
 - `LoopDetector` y `PoseGraphBuilder` tienen API documentada para consultar la
   base en subfases posteriores;
 - la documentación e historial quedan actualizados.
+
+## Estado de implementación
+
+La implementación está preparada para validación en simulación: importa la
+covisibilidad nativa desde los `OrbKeyFrame` raw, expone las consultas e integra
+las aristas confirmadas en ventanas de `PoseGraphBuilder`. Falta comprobar en
+Gazebo/replay que `connected_keyframe_ids` y `connected_keyframe_weights`
+llegan poblados desde el wrapper, que el umbral configurado produce aristas
+útiles y que los marcadores `[F1M-COVIS-*]` son coherentes. No declarar
+`CONSEGUIDA` hasta ejecutar esas pruebas.

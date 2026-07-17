@@ -1,6 +1,7 @@
 #pragma once
 
 #include "orbslam3_multi/fiducial_optimization_task.hpp"
+#include "orbslam3_multi/covisibility_database.hpp"
 #include "orbslam3_multi/global_pose_store.hpp"
 #include "orbslam3_multi/pose_graph_problem.hpp"
 #include "orbslam3_multi/raw_map_database.hpp"
@@ -29,6 +30,8 @@ struct PoseGraphBuilderConfig
     bool include_temporal_edges = true;
     double temporal_edge_weight = 25.0;
     double temporal_edge_weight_sparse = 10.0;
+    double covisibility_min_weight = 15.0;
+    double covisibility_edge_weight_scale = 1.0;
     double fiducial_hard_weight = 1000000.0;
     double fiducial_target_translation_weight = 5000.0;
     double fiducial_target_rotation_weight = 2500.0;
@@ -58,7 +61,8 @@ public:
     PoseGraphBuildResult BuildForFiducialTask(
         const FiducialOptimizationTask& task,
         const RawMapDatabase& raw_db,
-        const GlobalPoseStore& pose_store) const;
+        const GlobalPoseStore& pose_store,
+        const CovisibilityDatabase* covisibility_db = nullptr) const;
 
 private:
     PoseGraphBuilderConfig config_;

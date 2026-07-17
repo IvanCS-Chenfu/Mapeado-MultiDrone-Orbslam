@@ -6,10 +6,10 @@ Usar este archivo antes de abrir `pipeline_fase_1.md`.
 
 ```text
 Fase 1: actual
-Subfase actual: 1M
+Subfase actual: 1N
 Conclusión 1L: PARCIAL
-1M: `CovisibilityDatabase`, sin hacer
-1N+: no iniciar hasta completar 1M
+1M: `CovisibilityDatabase`, a probar en simulación
+1N: infraestructura provisional, por implementar; completar tras validar 1M/BoW
 ```
 
 ## Objetivo de Fase 1
@@ -33,8 +33,8 @@ fusión, loops y futura nube densa.
 | 1J | realizado | dry-run, dump/replay offline y HTML diagnóstico del grafo |
 | 1K | realizado/parcial | apply del grafo en `GlobalPoseStore`, propagación y publicación coherente |
 | 1L | parcial | diagnóstico post-apply: logs/sublogs/RViz2 opcional/GT debug sin ser dueño del apply |
-| 1M | actual/sin hacer | `CovisibilityDatabase` confirmada para ORB-SLAM3 y loops geométricos |
-| 1N | sin hacer | `LoopDetector` BoW |
+| 1M | actual/a probar en simulación | `CovisibilityDatabase` implementada; pendiente de validar importación ORB-SLAM3 y consultas |
+| 1N | actual/por implementar | `LoopDetector` con despacho de KFs; falta contrato y búsqueda BoW real |
 | 1O | sin hacer | subnubes/RANSAC |
 | 1P | sin hacer | decisión de loop/fusión |
 | 1Q | sin hacer | optimización por loop |

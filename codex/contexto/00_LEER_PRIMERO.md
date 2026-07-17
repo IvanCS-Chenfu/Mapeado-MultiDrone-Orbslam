@@ -34,9 +34,9 @@ La documentación extensa sigue existiendo, pero no debe abrirse por defecto.
 ```text
 Fase 1 — Mapa sparse global multi-dron
 Subfase actual — 1M
-Estado — sin hacer: `CovisibilityDatabase`
+Estado — a probar en simulación: `CovisibilityDatabase`
 1L — PARCIAL; se revalidará en el futuro.
-No iniciar 1N+ hasta completar 1M.
+No iniciar 1N+ hasta validar 1M.
 ```
 
 ## Reglas rápidas

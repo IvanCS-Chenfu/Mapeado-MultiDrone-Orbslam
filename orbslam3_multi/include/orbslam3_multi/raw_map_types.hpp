@@ -121,6 +121,9 @@ struct RawInsertResult
     uint64_t arrival_id = 0;
     uint64_t new_keyframes = 0;
     uint64_t updated_keyframes = 0;
+    // F1N: IDs de KFs realmente nuevos en esta llegada. Permite que el
+    // servidor despache detección de loops sin volver a procesar snapshots.
+    std::vector<RawKeyFrameId> new_keyframe_ids;
     uint64_t new_mappoints = 0;
     uint64_t updated_mappoints = 0;
     uint64_t bad_keyframes = 0;

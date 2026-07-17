@@ -7,10 +7,10 @@ necesarios.
 
 ```text
 Fase: 1 — mapa sparse global multi-dron
-Subfase actual: 1M
+Subfase actual: 1N
 Conclusión 1L: PARCIAL
-Estado 1M: `CovisibilityDatabase`, sin hacer
-Bloqueo: no iniciar 1N+ hasta completar 1M
+Estado 1M: `CovisibilityDatabase`, a probar en simulación
+Estado 1N: `LoopDetector`, por implementar; solo infraestructura sin BoW
 ```
 
 Objetivo global: nube densa global con varios drones, sin ground truth para mapa
@@ -64,7 +64,7 @@ aristas internas y propagación amplia -> diagnóstico, no rollback
 El GT medio de ventana no decide runtime: solo diagnostica.
 
 `1L` queda `PARCIAL` y se volverá a comprobar en el futuro. La subfase activa
-es `1M`: crear `CovisibilityDatabase` confirmada. Esta base importará
+es `1M`: validar `CovisibilityDatabase` confirmada. La implementación importa
 covisibilidad ORB-SLAM3 intra-dron, recibirá loops geométricos confirmados y
 será consultada por BoW/optimización para evitar trabajo repetido y no separar
 KFs covisibles.

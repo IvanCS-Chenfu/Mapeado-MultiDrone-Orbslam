@@ -39,6 +39,9 @@ orbslam3_multi/src/raw_map_database.cpp
 - `GetFiducialObservationsForArrival`: consulta observaciones fiduciales de una entrada concreta para replay.
 - `SaveToPath`: guarda el journal serializado en disco, incluyendo deltas, full snapshots y observaciones fiduciales.
 - `LoadFromPath`: carga el journal, reconstruye estado raw y permite reinyectar deltas y full snapshots por `arrival_id`.
+- `RawInsertResult::new_keyframe_ids`: lista los KFs realmente nuevos de una
+  llegada para que consumidores como `LoopDetector` no reconsulten KFs antiguos
+  de full snapshots.
 
 ## Tipos principales
 

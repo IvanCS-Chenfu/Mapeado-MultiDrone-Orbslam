@@ -1,7 +1,9 @@
 #include "orbslam3_multi/fiducial_anchor_manager.hpp"
+#include "orbslam3_multi/covisibility_database.hpp"
 #include "orbslam3_multi/global_map_builder.hpp"
 #include "orbslam3_multi/global_pose_store.hpp"
 #include "orbslam3_multi/landmark_score_manager.hpp"
+#include "orbslam3_multi/loop_detector.hpp"
 #include "orbslam3_multi/optimization_debug_exporter.hpp"
 #include "orbslam3_multi/optimization_manager.hpp"
 #include "orbslam3_multi/optimization_result.hpp"
@@ -55,6 +57,8 @@ using RawMapDatabase = orbslam3_multi::RawMapDatabase;
 using RecordedFiducialObservation = orbslam3_multi::RecordedFiducialObservation;
 using RawSubmapId = orbslam3_multi::RawSubmapId;
 using BodyCameraTransformConfig = orbslam3_multi::BodyCameraTransformConfig;
+using CovisibilityDatabase = orbslam3_multi::CovisibilityDatabase;
+using CovisibilityDatabaseStats = orbslam3_multi::CovisibilityDatabaseStats;
 using FiducialAnchorManager = orbslam3_multi::FiducialAnchorManager;
 using FiducialObservation = orbslam3_multi::FiducialObservation;
 using FiducialOptimizationTask = orbslam3_multi::FiducialOptimizationTask;
@@ -64,6 +68,8 @@ using GlobalMapBuilder = orbslam3_multi::GlobalMapBuilder;
 using GlobalPoseNewKeyFrameStatus = orbslam3_multi::GlobalPoseNewKeyFrameStatus;
 using GlobalPoseStore = orbslam3_multi::GlobalPoseStore;
 using LandmarkScoreManager = orbslam3_multi::LandmarkScoreManager;
+using LoopCandidateResult = orbslam3_multi::LoopCandidateResult;
+using LoopDetector = orbslam3_multi::LoopDetector;
 using LandmarkScoreUpdateResult = orbslam3_multi::LandmarkScoreUpdateResult;
 using OptimizationDebugExporter = orbslam3_multi::OptimizationDebugExporter;
 using OptimizationApplyResult = orbslam3_multi::OptimizationApplyResult;
@@ -145,6 +151,8 @@ public:
             "rawdb_replay_path",
             "src/codex/archivos_auxiliares/repeticiones/rawdb_prueba_1.record");
         rawdb_replay_period_sec_ = declare_parameter<double>("rawdb_replay_period_sec", 0.5);
+        f1m_covisibility_min_weight_ =
+            declare_parameter<double>("f1m_covisibility_min_weight", 15.0);
         pose_store_debug_enabled_ = declare_parameter<bool>("pose_store_debug_enabled", false);
         pose_store_debug_anchor_after_deltas_ =
             declare_parameter<int>("pose_store_debug_anchor_after_deltas", 5);
@@ -460,6 +468,10 @@ public:
         if (pose_graph_temporal_edge_weight_sparse_ < 0.0)
         {
             pose_graph_temporal_edge_weight_sparse_ = 0.0;
+        }
+        if (f1m_covisibility_min_weight_ < 0.0)
+        {
+            f1m_covisibility_min_weight_ = 0.0;
         }
         if (pose_graph_fiducial_hard_weight_ < 0.0)
         {
@@ -908,6 +920,7 @@ private:
         config.include_temporal_edges = pose_graph_include_temporal_edges_;
         config.temporal_edge_weight = pose_graph_temporal_edge_weight_;
         config.temporal_edge_weight_sparse = pose_graph_temporal_edge_weight_sparse_;
+        config.covisibility_min_weight = f1m_covisibility_min_weight_;
         config.fiducial_hard_weight = pose_graph_fiducial_hard_weight_;
         config.fiducial_target_translation_weight =
             pose_graph_fiducial_target_translation_weight_;
@@ -1556,6 +1569,8 @@ private:
                                         const orbslam3_multi::RawInsertResult& insert_result,
                                         const std::string& source)
     {
+        ImportCovisibilityFromRaw(arrival_id, source);
+        DispatchLoopDetector(insert_result, source);
         RCLCPP_WARN(
             get_logger(),
             "[F1G-RAWDB-INSERT-FULL] arrival_id=%llu drone_id=%u epoch=%llu new_kfs=%llu updated_kfs=%llu new_mps=%llu updated_mps=%llu bad_kfs=%llu bad_mps=%llu raw_pose_changed=%zu large_raw_pose_changed=%llu",
@@ -2815,8 +2830,28 @@ private:
                 f1l_max_partial_retries_);
         }
 
-        auto build_result =
-            pose_graph_builder_.BuildForFiducialTask(task, raw_db_, pose_store_);
+        auto build_result = pose_graph_builder_.BuildForFiducialTask(
+            task,
+            raw_db_,
+            pose_store_,
+            &covisibility_db_);
+        if (build_result.success)
+        {
+            const size_t covisibility_edges = static_cast<size_t>(std::count_if(
+                build_result.problem.edges.begin(),
+                build_result.problem.edges.end(),
+                [](const auto& edge)
+                {
+                    return edge.source.rfind("F1M_", 0) == 0;
+                }));
+            RCLCPP_WARN(
+                get_logger(),
+                "[F1M-COVIS-QUERY] task_id=%llu window_kfs=%zu returned_edges=%zu min_weight=%.3f",
+                static_cast<unsigned long long>(task.task_id),
+                build_result.problem.vertices.size(),
+                covisibility_edges,
+                f1m_covisibility_min_weight_);
+        }
         if (!build_result.success)
         {
             const auto& coverage = build_result.problem.coverage;
@@ -4446,6 +4481,8 @@ private:
         const size_t mappoint_count = msg->mappoints.size();
         const uint64_t arrival_id = rawdb_next_arrival_id_++;
         const auto insert_result = raw_db_.InsertDelta(arrival_id, *msg);
+        ImportCovisibilityFromRaw(arrival_id, "delta");
+        DispatchLoopDetector(insert_result, "delta");
 
         {
             // F1B: todos los acumulados se actualizan juntos para que
@@ -4613,6 +4650,84 @@ private:
             static_cast<unsigned long long>(raw_stats.keyframes),
             static_cast<unsigned long long>(raw_stats.mappoints),
             static_cast<unsigned long long>(raw_stats.last_arrival_id));
+
+        const CovisibilityDatabaseStats covisibility_stats = covisibility_db_.GetStats();
+        RCLCPP_WARN(
+            get_logger(),
+            "[F1M-COVIS-SUMMARY] confirmed_edges=%llu orbslam3_native=%llu server_loop_geometric=%llu revision=%llu",
+            static_cast<unsigned long long>(covisibility_stats.confirmed_edges),
+            static_cast<unsigned long long>(covisibility_stats.orbslam3_native_edges),
+            static_cast<unsigned long long>(covisibility_stats.server_loop_geometric_edges),
+            static_cast<unsigned long long>(covisibility_stats.revision));
+    }
+
+    void ImportCovisibilityFromRaw(uint64_t arrival_id, const std::string& trigger)
+    {
+        const auto result = covisibility_db_.ImportOrbslam3Native(
+            raw_db_, arrival_id, f1m_covisibility_min_weight_);
+        RCLCPP_WARN(
+            get_logger(),
+            "[F1M-COVIS-IMPORT] trigger=%s arrival_id=%llu min_weight=%.3f keyframes=%llu connections=%llu added=%llu updated=%llu skipped_low_weight=%llu skipped_missing_keyframe=%llu",
+            trigger.c_str(),
+            static_cast<unsigned long long>(result.arrival_id),
+            f1m_covisibility_min_weight_,
+            static_cast<unsigned long long>(result.keyframes_examined),
+            static_cast<unsigned long long>(result.connections_examined),
+            static_cast<unsigned long long>(result.edges_added),
+            static_cast<unsigned long long>(result.edges_updated),
+            static_cast<unsigned long long>(result.edges_skipped_low_weight),
+            static_cast<unsigned long long>(result.edges_skipped_missing_keyframe));
+        if (result.edges_added > 0)
+        {
+            RCLCPP_WARN(
+                get_logger(),
+                "[F1M-COVIS-EDGE-ADD] arrival_id=%llu source=ORBSLAM3_NATIVE count=%llu",
+                static_cast<unsigned long long>(result.arrival_id),
+                static_cast<unsigned long long>(result.edges_added));
+        }
+        if (result.edges_updated > 0)
+        {
+            RCLCPP_WARN(
+                get_logger(),
+                "[F1M-COVIS-EDGE-UPDATE] arrival_id=%llu source=ORBSLAM3_NATIVE count=%llu",
+                static_cast<unsigned long long>(result.arrival_id),
+                static_cast<unsigned long long>(result.edges_updated));
+        }
+    }
+
+    void DispatchLoopDetector(
+        const orbslam3_multi::RawInsertResult& insert_result,
+        const std::string& trigger)
+    {
+        for (const auto& keyframe_id : insert_result.new_keyframe_ids)
+        {
+            RCLCPP_WARN(
+                get_logger(),
+                "[F1N-LOOP-NEW-KF-DISPATCH] trigger=%s arrival_id=%llu drone_id=%u epoch=%llu kf=%llu",
+                trigger.c_str(),
+                static_cast<unsigned long long>(insert_result.arrival_id),
+                keyframe_id.drone_id,
+                static_cast<unsigned long long>(keyframe_id.map_epoch),
+                static_cast<unsigned long long>(keyframe_id.local_kf_id));
+            const LoopCandidateResult result = loop_detector_.ProcessNewKeyFrame(
+                keyframe_id,
+                raw_db_,
+                &pose_store_,
+                covisibility_db_);
+            RCLCPP_WARN(
+                get_logger(),
+                "[F1N-LOOP-KF-QUERY] drone_id=%u epoch=%llu kf=%llu processed=%s reason=%s indexed_kfs=%llu compared_kfs=%llu raw_candidates=%llu filtered_candidates=%llu skipped_confirmed_covisibility=%llu",
+                keyframe_id.drone_id,
+                static_cast<unsigned long long>(keyframe_id.map_epoch),
+                static_cast<unsigned long long>(keyframe_id.local_kf_id),
+                result.processed ? "true" : "false",
+                result.reason.c_str(),
+                static_cast<unsigned long long>(result.indexed_keyframes),
+                static_cast<unsigned long long>(result.compared_keyframes),
+                static_cast<unsigned long long>(result.candidates_raw),
+                static_cast<unsigned long long>(result.candidates_after_filter),
+                static_cast<unsigned long long>(result.skipped_confirmed_covisibility));
+        }
     }
 
     void LogRawInsert(const char* marker, uint64_t arrival_id, const RawDatabaseStats& stats)
@@ -4690,6 +4805,7 @@ private:
         }
         const auto loaded_stats = loaded_db.GetDatabaseStats();
         raw_db_.Clear();
+        covisibility_db_.Clear();
         replay_index_ = 0;
         replay_done_logged_ = false;
 
@@ -4779,6 +4895,8 @@ private:
         }
         else
         {
+            ImportCovisibilityFromRaw(entry.arrival_id, "replay_delta");
+            DispatchLoopDetector(result, "replay_delta");
             LogRawInsert("F1C-RAWDB-INSERT-DELTA", entry.arrival_id, result.stats);
             UpdateScoresFromMap(entry.map, entry.arrival_id);
             ProcessReplayFiducials(entry.arrival_id);
@@ -5130,6 +5248,7 @@ private:
     std::string namespace_base_ = "dron";
     int n_drones_ = 1;
     double stats_period_s_ = 2.0;
+    double f1m_covisibility_min_weight_ = 15.0;
     bool rawdb_record_enabled_ = true;
     bool rawdb_replay_enabled_ = false;
     std::string rawdb_record_path_;
@@ -5249,6 +5368,8 @@ private:
     sensor_msgs::msg::PointCloud2 last_global_sparse_cloud_;
     bool has_last_global_sparse_cloud_ = false;
     RawMapDatabase raw_db_;
+    CovisibilityDatabase covisibility_db_;
+    LoopDetector loop_detector_;
     GlobalPoseStore pose_store_;
     FiducialAnchorManager fiducial_anchor_manager_;
     LandmarkScoreManager score_manager_;

@@ -7,10 +7,11 @@ Si hace falta evidencia histórica, abrir el historial por subfase.
 
 ```text
 Fase activa: Fase 1 — Mapa sparse global multi-dron
-Subfase actual: 1M
+Subfase actual: 1N
 Conclusión 1L: PARCIAL
 Estado 1M: `CovisibilityDatabase`, a probar en simulación
-Siguiente bloque funcional: 1N+, bloqueado hasta validar 1M
+Estado 1N: `LoopDetector`, por implementar (infraestructura provisional sin BoW)
+Pendiente: validar 1M y completar 1N en el workspace con contrato BoW
 ```
 
 ## Objetivo global
@@ -47,6 +48,13 @@ La implementación queda pendiente de prueba en simulación/replay: debe
 confirmarse que el wrapper rellena las conexiones nativas y que los logs
 `[F1M-COVIS-*]` muestran importación y consultas coherentes antes de desbloquear
 `1N+`.
+
+## Estado real de `1N`
+
+Se añadió el despacho de KFs nuevos y la API conservadora de `LoopDetector`,
+pero no se implementó búsqueda/ranking BoW porque este checkout no contiene los
+campos BoW/`FeatureVector` de `OrbKeyFrame`. `1N` queda **por implementar**;
+no produce candidatos ficticios ni confirma loops.
 
 ## Estado real de `1L`
 

@@ -3,6 +3,7 @@
 #include "orbslam3_multi/global_map_builder.hpp"
 #include "orbslam3_multi/global_pose_store.hpp"
 #include "orbslam3_multi/landmark_score_manager.hpp"
+#include "orbslam3_multi/loop_detector.hpp"
 #include "orbslam3_multi/optimization_debug_exporter.hpp"
 #include "orbslam3_multi/optimization_manager.hpp"
 #include "orbslam3_multi/optimization_result.hpp"
@@ -67,6 +68,8 @@ using GlobalMapBuilder = orbslam3_multi::GlobalMapBuilder;
 using GlobalPoseNewKeyFrameStatus = orbslam3_multi::GlobalPoseNewKeyFrameStatus;
 using GlobalPoseStore = orbslam3_multi::GlobalPoseStore;
 using LandmarkScoreManager = orbslam3_multi::LandmarkScoreManager;
+using LoopCandidateResult = orbslam3_multi::LoopCandidateResult;
+using LoopDetector = orbslam3_multi::LoopDetector;
 using LandmarkScoreUpdateResult = orbslam3_multi::LandmarkScoreUpdateResult;
 using OptimizationDebugExporter = orbslam3_multi::OptimizationDebugExporter;
 using OptimizationApplyResult = orbslam3_multi::OptimizationApplyResult;
@@ -1567,6 +1570,7 @@ private:
                                         const std::string& source)
     {
         ImportCovisibilityFromRaw(arrival_id, source);
+        DispatchLoopDetector(insert_result, source);
         RCLCPP_WARN(
             get_logger(),
             "[F1G-RAWDB-INSERT-FULL] arrival_id=%llu drone_id=%u epoch=%llu new_kfs=%llu updated_kfs=%llu new_mps=%llu updated_mps=%llu bad_kfs=%llu bad_mps=%llu raw_pose_changed=%zu large_raw_pose_changed=%llu",
@@ -4478,6 +4482,7 @@ private:
         const uint64_t arrival_id = rawdb_next_arrival_id_++;
         const auto insert_result = raw_db_.InsertDelta(arrival_id, *msg);
         ImportCovisibilityFromRaw(arrival_id, "delta");
+        DispatchLoopDetector(insert_result, "delta");
 
         {
             // F1B: todos los acumulados se actualizan juntos para que
@@ -4690,6 +4695,41 @@ private:
         }
     }
 
+    void DispatchLoopDetector(
+        const orbslam3_multi::RawInsertResult& insert_result,
+        const std::string& trigger)
+    {
+        for (const auto& keyframe_id : insert_result.new_keyframe_ids)
+        {
+            RCLCPP_WARN(
+                get_logger(),
+                "[F1N-LOOP-NEW-KF-DISPATCH] trigger=%s arrival_id=%llu drone_id=%u epoch=%llu kf=%llu",
+                trigger.c_str(),
+                static_cast<unsigned long long>(insert_result.arrival_id),
+                keyframe_id.drone_id,
+                static_cast<unsigned long long>(keyframe_id.map_epoch),
+                static_cast<unsigned long long>(keyframe_id.local_kf_id));
+            const LoopCandidateResult result = loop_detector_.ProcessNewKeyFrame(
+                keyframe_id,
+                raw_db_,
+                &pose_store_,
+                covisibility_db_);
+            RCLCPP_WARN(
+                get_logger(),
+                "[F1N-LOOP-KF-QUERY] drone_id=%u epoch=%llu kf=%llu processed=%s reason=%s indexed_kfs=%llu compared_kfs=%llu raw_candidates=%llu filtered_candidates=%llu skipped_confirmed_covisibility=%llu",
+                keyframe_id.drone_id,
+                static_cast<unsigned long long>(keyframe_id.map_epoch),
+                static_cast<unsigned long long>(keyframe_id.local_kf_id),
+                result.processed ? "true" : "false",
+                result.reason.c_str(),
+                static_cast<unsigned long long>(result.indexed_keyframes),
+                static_cast<unsigned long long>(result.compared_keyframes),
+                static_cast<unsigned long long>(result.candidates_raw),
+                static_cast<unsigned long long>(result.candidates_after_filter),
+                static_cast<unsigned long long>(result.skipped_confirmed_covisibility));
+        }
+    }
+
     void LogRawInsert(const char* marker, uint64_t arrival_id, const RawDatabaseStats& stats)
     {
         RCLCPP_WARN(
@@ -4855,6 +4895,8 @@ private:
         }
         else
         {
+            ImportCovisibilityFromRaw(entry.arrival_id, "replay_delta");
+            DispatchLoopDetector(result, "replay_delta");
             LogRawInsert("F1C-RAWDB-INSERT-DELTA", entry.arrival_id, result.stats);
             UpdateScoresFromMap(entry.map, entry.arrival_id);
             ProcessReplayFiducials(entry.arrival_id);
@@ -5327,6 +5369,7 @@ private:
     bool has_last_global_sparse_cloud_ = false;
     RawMapDatabase raw_db_;
     CovisibilityDatabase covisibility_db_;
+    LoopDetector loop_detector_;
     GlobalPoseStore pose_store_;
     FiducialAnchorManager fiducial_anchor_manager_;
     LandmarkScoreManager score_manager_;

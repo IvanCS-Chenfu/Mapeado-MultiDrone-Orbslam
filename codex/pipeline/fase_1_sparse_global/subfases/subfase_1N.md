@@ -3,7 +3,7 @@
 ## Estado
 
 ```text
-sin hacer
+por implementar
 ```
 
 ---
@@ -11,15 +11,17 @@ sin hacer
 Nota 2026-07-10:
 
 ```text
-1N queda bloqueada por orden de pipeline hasta completar la nueva `1M`.
+La implementación completa de 1N queda bloqueada hasta validar 1M. Se permite
+adelantar únicamente la infraestructura sin BoW real mientras el contrato de
+`OrbKeyFrame` no esté disponible en este checkout.
 ```
 
 Nota 2026-07-11:
 
 ```text
 `1L` queda `PARCIAL` tras inspeccion RViz2 y se revalidará en el futuro. La
-deuda de covisibilidad/loops no se absorbe en `1L`; `1N` no debe iniciarse hasta
-que `1M` cree la `CovisibilityDatabase` confirmada.
+deuda de covisibilidad/loops no se absorbe en `1L`; 1N no se considera realizada
+hasta que 1M quede validada y el wrapper exponga BoW/FeatureVector verificables.
 ```
 
 Antes de iniciar BoW/loops, la ruta comun de optimizacion debe preservar anclajes fiduciales previos y sus vecindades, no solo el KF hard fiducial exacto. Si no se corrige en `1I-1L`, los loops de `1Q` podrian reutilizar el mismo pipeline y producir desplazamientos globales del submapa.
@@ -320,7 +322,7 @@ source = BOW
 Logs:
 
 ```text
-[F1M-LOOP-CANDIDATE]
+[F1N-LOOP-CANDIDATE]
 ```
 
 ---
@@ -345,7 +347,7 @@ best_candidate
 Logs:
 
 ```text
-[F1M-LOOP-CANDIDATE-SUMMARY]
+[F1N-LOOP-CANDIDATE-SUMMARY]
 ```
 
 ---
@@ -389,7 +391,7 @@ Condiciones de seguridad:
 Logs:
 
 ```text
-[F1M-LOOP-KF-QUERY]
+[F1N-LOOP-KF-QUERY]
 ```
 
 ---
@@ -414,7 +416,7 @@ En 1N se recomienda empezar con candidatos de submapas anclados o candidatos con
 Logs:
 
 ```text
-[F1M-LOOP-BOW-SEARCH]
+[F1N-LOOP-BOW-SEARCH]
 ```
 
 Debe mostrar:
@@ -496,7 +498,7 @@ loop_bow_min_kf_gap_same_submap
 Logs:
 
 ```text
-[F1M-LOOP-CANDIDATE-FILTER]
+[F1N-LOOP-CANDIDATE-FILTER]
 ```
 
 ---
@@ -521,7 +523,7 @@ Campos de ranking deben loggearse de forma resumida.
 Logs:
 
 ```text
-[F1M-LOOP-CANDIDATE-RANK]
+[F1N-LOOP-CANDIDATE-RANK]
 ```
 
 ---
@@ -552,7 +554,7 @@ modo debug process_all_snapshot_kfs limitado
 Logs:
 
 ```text
-[F1M-LOOP-NEW-KF-DISPATCH]
+[F1N-LOOP-NEW-KF-DISPATCH]
 ```
 
 ---
@@ -566,8 +568,8 @@ En 1N el servidor solo debe loggear resultados. No debe actuar sobre ellos.
 Logs del servidor:
 
 ```text
-[F1M-SERVER-LOOP-DETECTOR-CALL]
-[F1M-SERVER-LOOP-CANDIDATES-RX]
+[F1N-SERVER-LOOP-DETECTOR-CALL]
+[F1N-SERVER-LOOP-CANDIDATES-RX]
 ```
 
 ---
@@ -581,7 +583,7 @@ En replay, al reinsertar cada delta, se deben procesar los nuevos KFs en el mism
 Logs:
 
 ```text
-[F1M-LOOP-REPLAY-KF-QUERY]
+[F1N-LOOP-REPLAY-KF-QUERY]
 ```
 
 ---
@@ -752,8 +754,8 @@ Puede hacerse con replay.
 Logs esperados:
 
 ```text
-[F1M-LOOP-CANDIDATE-FILTER] reason=too_recent_same_submap
-[F1M-LOOP-CANDIDATE-SUMMARY]
+[F1N-LOOP-CANDIDATE-FILTER] reason=too_recent_same_submap
+[F1N-LOOP-CANDIDATE-SUMMARY]
 ```
 
 ---
@@ -763,19 +765,19 @@ Logs esperados:
 ### Prueba 1
 
 ```text
-SCENARIO-RUNNER|GOAL|RESULT|success|F1M-|F1C-RAWDB|F1F-GLOBALMAP|ERROR|FATAL|Segmentation fault|Killed
+SCENARIO-RUNNER|GOAL|RESULT|success|F1N-|F1C-RAWDB|F1F-GLOBALMAP|ERROR|FATAL|Segmentation fault|Killed
 ```
 
 ### Prueba 2
 
 ```text
-SCENARIO-RUNNER|GOAL|RESULT|success|F1M-|F1C-REPLAY|F1C-RAWDB|ERROR|FATAL|Segmentation fault|Killed
+SCENARIO-RUNNER|GOAL|RESULT|success|F1N-|F1C-REPLAY|F1C-RAWDB|ERROR|FATAL|Segmentation fault|Killed
 ```
 
 ### Prueba 3
 
 ```text
-SCENARIO-RUNNER|GOAL|RESULT|success|F1M-LOOP-CANDIDATE-FILTER|F1M-LOOP-CANDIDATE-SUMMARY|too_recent_same_submap|ERROR|FATAL|Segmentation fault|Killed
+SCENARIO-RUNNER|GOAL|RESULT|success|F1N-LOOP-CANDIDATE-FILTER|F1N-LOOP-CANDIDATE-SUMMARY|too_recent_same_submap|ERROR|FATAL|Segmentation fault|Killed
 ```
 
 La reducción genera:
@@ -795,30 +797,30 @@ Si el reducido no muestra suficiente información, revisar el log completo antes
 Deben aparecer:
 
 ```text
-[F1M-LOOP-NEW-KF-DISPATCH]
-[F1M-LOOP-KF-QUERY]
-[F1M-LOOP-BOW-SEARCH]
-[F1M-LOOP-CANDIDATE-SUMMARY]
+[F1N-LOOP-NEW-KF-DISPATCH]
+[F1N-LOOP-KF-QUERY]
+[F1N-LOOP-BOW-SEARCH]
+[F1N-LOOP-CANDIDATE-SUMMARY]
 ```
 
 Si hay candidatos:
 
 ```text
-[F1M-LOOP-BOW-CANDIDATES]
-[F1M-LOOP-CANDIDATE]
-[F1M-LOOP-CANDIDATE-RANK]
+[F1N-LOOP-BOW-CANDIDATES]
+[F1N-LOOP-CANDIDATE]
+[F1N-LOOP-CANDIDATE-RANK]
 ```
 
 Si no hay candidatos:
 
 ```text
-[F1M-LOOP-NO-CANDIDATES]
+[F1N-LOOP-NO-CANDIDATES]
 ```
 
 Si se filtran candidatos:
 
 ```text
-[F1M-LOOP-CANDIDATE-FILTER]
+[F1N-LOOP-CANDIDATE-FILTER]
 ```
 
 No debe aparecer:

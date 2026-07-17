@@ -7,10 +7,10 @@ necesarios.
 
 ```text
 Fase: 1 — mapa sparse global multi-dron
-Subfase actual: 1M
+Subfase actual: 1N
 Conclusión 1L: PARCIAL
 Estado 1M: `CovisibilityDatabase`, a probar en simulación
-Bloqueo: no iniciar 1N+ hasta validar 1M
+Estado 1N: `LoopDetector`, por implementar; solo infraestructura sin BoW
 ```
 
 Objetivo global: nube densa global con varios drones, sin ground truth para mapa

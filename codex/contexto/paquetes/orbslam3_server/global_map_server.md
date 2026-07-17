@@ -801,3 +801,10 @@ La reejecucion posterior implemento ese guard de cobertura. En la prueba
 antes del solver con `uncovered_long_segments=3`. El resultado sigue siendo
 `PARCIAL` porque el primer candidato redujo el fiducial objetivo pero dejo la
 ventana GT completa con errores de varios metros.
+# Actualización 1N provisional
+
+El servidor despacha cada `RawInsertResult::new_keyframe_ids` hacia
+`LoopDetector` después de la ingesta raw, tanto live como replay. Mientras el
+contrato BoW no esté disponible, solo emite `[F1N-LOOP-NEW-KF-DISPATCH]` y
+`[F1N-LOOP-KF-QUERY]` con el motivo conservador de ausencia de datos BoW; no
+crea candidatos ni modifica estado de loops.

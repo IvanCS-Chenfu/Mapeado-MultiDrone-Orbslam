@@ -33,7 +33,7 @@ Subfase 1J: OptimizationManager dry-run y `partial_candidate` conseguidos de nue
 Subfase 1K: apply seguro en `GlobalPoseStore` conseguido de nuevo el 2026-07-11 con precheck de preservacion de anclajes
 Subfase 1L: PARCIAL; diagnostico post-apply, pendiente de revalidacion futura
 Subfase 1M: actual/a probar en simulación; `CovisibilityDatabase` implementada
-Subfase actual: 1M
+Subfase actual: 1N (por implementar; infraestructura sin BoW real)
 ```
 
 No usar `12R-D4` ni otras subfases residuales como planificación activa. Se conservan como legacy.

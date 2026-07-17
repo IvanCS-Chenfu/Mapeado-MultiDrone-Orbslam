@@ -1,19 +1,12 @@
 # 07 — Última sesión
 
-## 2026-07-16 — Implementación de `CovisibilityDatabase`
+## 2026-07-17 — Infraestructura provisional de 1N
 
-- Se añadió `CovisibilityDatabase` en `orbslam3_multi` con pares canónicos de
-  `RawKeyFrameId`, soporte, fuentes confirmadas y poses relativas medida/current.
-- `global_map_server` importa conexiones nativas de ORB-SLAM3 tras cada delta o
-  full snapshot, reinicia la base en replay y publica logs `[F1M-COVIS-*]`.
-- `PoseGraphBuilder` puede añadir aristas `SoftConsistency` de covisibilidad sin
-  crear vértices ni sustituir las aristas temporales existentes.
-- Se documentó la API en `codex/contexto/paquetes/orbslam3_multi/` y el
-  historial de `1M`.
-- No se ejecutó build ni simulación: este checkout no incluye el CMake de
-  `orbslam3_multi` ni `orbslam3_msgs`, y la validación Gazebo debe realizarse
-  en el workspace completo desde VS Code.
-
-Conclusión: `1M` queda **a probar en simulación**. No iniciar `1N+` hasta
-verificar la importación de `connected_keyframe_ids/weights` y los logs de
-covisibilidad con datos reales.
+- Se añadieron `LoopCandidate`, `LoopCandidateResult` y `LoopDetector`.
+- `RawMapDatabase` expone los KFs nuevos de cada ingesta y `global_map_server`
+  los despacha en live, full snapshot y replay.
+- No se implementó una búsqueda BoW ficticia: faltan los campos BoW/
+  `FeatureVector` de `OrbKeyFrame` en este checkout.
+- Se normalizaron los marcadores planificados de 1N a `[F1N-LOOP-*]`.
+- `1M` sigue pendiente de simulación y `1N` queda **por implementar** para
+  completar desde VS Code con el workspace completo.

@@ -14,7 +14,7 @@ Interfaces clave:
 Scripts / Ejecutables relevantes:
 - `test_opt_graph_offline` (diagnóstico dry-run/HTML).
 
-APIs clave: `RawMapDatabase`, `GlobalPoseStore`, `FiducialAnchorManager`, `CovisibilityDatabase`, `OptimizationManager`, `GlobalMapBuilder`.
+APIs clave: `RawMapDatabase`, `GlobalPoseStore`, `FiducialAnchorManager`, `CovisibilityDatabase`, `LoopDetector` (infraestructura sin BoW aún), `OptimizationManager`, `GlobalMapBuilder`.
 
 Config / Launch: no tiene launch; es librería C++ consumida por `orbslam3_server`.
 

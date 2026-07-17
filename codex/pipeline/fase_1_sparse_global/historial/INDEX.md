@@ -25,6 +25,7 @@ subfase o tema que afecte a la tarea actual.
 | `1K/1L` | `por_subfase/historial_1K_1L.md` | Ajustes de planificación compartidos. |
 | `1L` | `por_subfase/historial_1L.md` (índice) | PARCIAL; diagnóstico post-apply. Dividido en subhistoriales: `historial_1L_1.md` (2026-07-10 a 2026-07-12 00:54), `historial_1L_2.md` (2026-07-12 23:06 a 2026-07-13 00:14), `historial_1L_3.md` (2026-07-13 00:27 a 2026-07-13 13:18), `historial_1L_4.md` (2026-07-14). Propiedad vigente: HTML/dry-run en `1J`, apply/publicación/herencia en `1K`, validación/logs/RViz2/GT debug en `1L`. |
 | `1M` | `por_subfase/historial_1M.md` | Actual/a probar en simulación; `CovisibilityDatabase` implementada para ORB-SLAM3 y loops geométricos. |
+| `1N` | `por_subfase/historial_1N.md` | Actual/por implementar; infraestructura de despacho creada, falta BoW real. |
 
 ## Cómo añadir historial nuevo
 
